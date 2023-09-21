@@ -40,10 +40,12 @@ def run_stock_scraper() -> list:
             scrape_data(table_rows)
             driver.find_element(By.XPATH, "//span[contains(text(),'Next')]").click()
             page_count = page_count + 1
+            print(f"Stocks - Scraped page {page_count} of {total_page_count}.")
         # close pop up if it displays
         except Exception as e:
             WebDriverWait(driver, 2).until(
                 ec.presence_of_element_located((By.CSS_SELECTOR, "[aria-label='Close']")))
             driver.find_element(By.CSS_SELECTOR, "[aria-label='Close']").click()
 
+    print("Stocks - Completed scraping.")
     return table_rows

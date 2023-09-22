@@ -15,37 +15,31 @@ options.add_argument('--headless')
 driver = webdriver.Chrome(options=options)
 driver.get(URL)
 
-total_page_count = int(driver.find_element(By.XPATH, "//nav/div/span").text.split(" ")[3])
 
-
-# scrape table rows
-def scrape_data(table_rows: list) -> None:
+def scrape_data(symbols: list, company_names: list) -> None:
     # wait for page to load
     time.sleep(2)
-    # scrapes table row elements in table
-    table_row_elements = driver.find_elements(By.TAG_NAME, "tr")
-    # adds scraped data to list
-    for table_row in table_row_elements:
-        table_rows.append(table_row.text)
+    # scrapes symbols & company names
+    symbol_elements = driver.find_elements(By.CLASS_NAME, "sym")
+    company_name_elements = driver.find_elements(By.CLASS_NAME, "slw")
+    # adds scraped data to lists
+    for symbol in symbol_elements:
+        symbols.append(symbol.text)
+    for company_name in company_name_elements:
+        company_names.append(company_name.text)
 
 
-# click through all pages and scrape data
-def run_stock_scraper() -> list:
-    table_rows = list()
-    page_count = 0
+def run_stock_scraper() -> list[list, list]:
+    symbols, company_names = list(), list()
 
-    while page_count != total_page_count:
-        # scrapes page and increases page count
-        try:
-            scrape_data(table_rows)
-            driver.find_element(By.XPATH, "//span[contains(text(),'Next')]").click()
-            page_count = page_count + 1
-            print(f"Stocks - Scraped page {page_count} of {total_page_count}.")
-        # close pop up if it displays
-        except Exception as e:
-            WebDriverWait(driver, 2).until(
-                ec.presence_of_element_located((By.CSS_SELECTOR, "[aria-label='Close']")))
-            driver.find_element(By.CSS_SELECTOR, "[aria-label='Close']").click()
+    # scrapes page and increases page count
+    try:
+        scrape_data(symbols=symbols, company_names=company_names)
+    # close pop up if it displays
+    except Exception as e:
+        WebDriverWait(driver, 2).until(
+            ec.presence_of_element_located((By.CSS_SELECTOR, "[aria-label='Close']")))
+        driver.find_element(By.CSS_SELECTOR, "[aria-label='Close']").click()
 
-    print("Stocks - Completed scraping.")
-    return table_rows
+    print("Completed scraping stocks")
+    return [symbols, company_names]
